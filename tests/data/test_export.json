@@ -1,0 +1,17 @@
+{
+  "export_info": {
+    "export_date": "2025-08-21T13:43:31.812656",
+    "ai_level": "easy",
+    "export_format": "holdem-cli-v2",
+    "version": "1.0"
+  },
+  "session_summary": {
+    "total_hands": 0,
+    "player_wins": 0,
+    "ai_wins": 0,
+    "ties": 0,
+    "showdowns": 0,
+    "average_pot_size": 0
+  },
+  "hands": []
+}
