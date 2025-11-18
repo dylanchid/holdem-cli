@@ -13,9 +13,9 @@ from datetime import datetime
 from dataclasses import dataclass, asdict
 from contextlib import contextmanager
 
-from ..widgets.matrix import HandAction, ChartAction
-from ..services.chart_service import ChartMetadata
-from ..core.cache import SmartCache
+from holdem_cli.charts.tui.widgets.matrix import HandAction, ChartAction
+from .chart_service import ChartMetadata
+from holdem_cli.charts.tui.core.cache import SmartCache
 
 
 @dataclass
