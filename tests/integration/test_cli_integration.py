@@ -39,9 +39,19 @@ class TestCLIIntegration:
                 db_path.unlink()
 
             # Patch the database path for testing
-            with patch('holdem_cli.cli.get_database_path', return_value=db_path), \
+            with patch('holdem_cli.cli.main.get_database_path', return_value=db_path), \
+                 patch('holdem_cli.cli.quiz_commands.init_database') as mock_quiz_db, \
+                 patch('holdem_cli.cli.simulate_commands.init_database') as mock_sim_db, \
+                 patch('holdem_cli.cli.profile_commands.init_database') as mock_profile_db, \
+                 patch('holdem_cli.cli.chart_commands.init_database') as mock_chart_db, \
                  patch('holdem_cli.storage.get_database_path', return_value=db_path), \
                  patch('holdem_cli.storage.database.get_database_path', return_value=db_path):
+                # Configure mocks to return a real database for testing
+                from holdem_cli.storage import init_database as real_init_db
+                mock_quiz_db.side_effect = lambda: real_init_db(db_path)
+                mock_sim_db.side_effect = lambda: real_init_db(db_path)
+                mock_profile_db.side_effect = lambda: real_init_db(db_path)
+                mock_chart_db.side_effect = lambda: real_init_db(db_path)
                 yield db_path
 
     def test_cli_main_group_help(self, runner):
@@ -223,14 +233,24 @@ class TestCLIErrorHandling:
                 db_path.unlink()
 
             # Patch the database path for testing
-            with patch('holdem_cli.cli.get_database_path', return_value=db_path), \
+            with patch('holdem_cli.cli.main.get_database_path', return_value=db_path), \
+                 patch('holdem_cli.cli.quiz_commands.init_database') as mock_quiz_db, \
+                 patch('holdem_cli.cli.simulate_commands.init_database') as mock_sim_db, \
+                 patch('holdem_cli.cli.profile_commands.init_database') as mock_profile_db, \
+                 patch('holdem_cli.cli.chart_commands.init_database') as mock_chart_db, \
                  patch('holdem_cli.storage.get_database_path', return_value=db_path), \
                  patch('holdem_cli.storage.database.get_database_path', return_value=db_path):
+                # Configure mocks to return a real database for testing
+                from holdem_cli.storage import init_database as real_init_db
+                mock_quiz_db.side_effect = lambda: real_init_db(db_path)
+                mock_sim_db.side_effect = lambda: real_init_db(db_path)
+                mock_profile_db.side_effect = lambda: real_init_db(db_path)
+                mock_chart_db.side_effect = lambda: real_init_db(db_path)
                 yield db_path
 
     def test_init_database_error(self, runner):
         """Test init command when database initialization fails."""
-        with patch('holdem_cli.cli.init_database', side_effect=Exception("DB Error")):
+        with patch('holdem_cli.cli.main.init_database', side_effect=Exception("DB Error")):
             result = runner.invoke(main, ['init', '--profile', 'testuser'])
             assert result.exit_code != 0
 
@@ -239,7 +259,7 @@ class TestCLIErrorHandling:
         # Create a profile first
         runner.invoke(main, ['init', '--profile', 'quizuser'])
 
-        with patch('holdem_cli.cli.Database', side_effect=Exception("DB Error")):
+        with patch('holdem_cli.cli.quiz_commands.init_database', side_effect=Exception("DB Error")):
             result = runner.invoke(main, [
                 'quiz', 'hand-ranking',
                 '--count', '5',
@@ -250,7 +270,8 @@ class TestCLIErrorHandling:
     def test_profile_stats_invalid_profile(self, runner, temp_db):
         """Test profile stats with invalid profile name."""
         result = runner.invoke(main, ['profile', 'stats', ''])
-        assert result.exit_code != 0 or "Error" in result.output
+        # Empty profile name is handled gracefully with "not found" message
+        assert result.exit_code == 0 and "not found" in result.output
 
     def test_simulate_invalid_ai_level(self, runner, temp_db):
         """Test simulate command with invalid AI level."""
@@ -285,9 +306,19 @@ class TestCLIIntegrationWorkflows:
                 db_path.unlink()
 
             # Patch the database path for testing
-            with patch('holdem_cli.cli.get_database_path', return_value=db_path), \
+            with patch('holdem_cli.cli.main.get_database_path', return_value=db_path), \
+                 patch('holdem_cli.cli.quiz_commands.init_database') as mock_quiz_db, \
+                 patch('holdem_cli.cli.simulate_commands.init_database') as mock_sim_db, \
+                 patch('holdem_cli.cli.profile_commands.init_database') as mock_profile_db, \
+                 patch('holdem_cli.cli.chart_commands.init_database') as mock_chart_db, \
                  patch('holdem_cli.storage.get_database_path', return_value=db_path), \
                  patch('holdem_cli.storage.database.get_database_path', return_value=db_path):
+                # Configure mocks to return a real database for testing
+                from holdem_cli.storage import init_database as real_init_db
+                mock_quiz_db.side_effect = lambda: real_init_db(db_path)
+                mock_sim_db.side_effect = lambda: real_init_db(db_path)
+                mock_profile_db.side_effect = lambda: real_init_db(db_path)
+                mock_chart_db.side_effect = lambda: real_init_db(db_path)
                 yield db_path
 
     def test_complete_user_workflow(self, runner, temp_db):

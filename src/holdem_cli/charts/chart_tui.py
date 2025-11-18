@@ -51,7 +51,7 @@ from .messages import (
     ExportChartRequested,
     ViewModeChanged
 )
-from .tui.utils import (
+from .utils import (
     run_chart_viewer,
     launch_interactive_chart_viewer,
     launch_chart_quiz,
