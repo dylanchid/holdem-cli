@@ -12,6 +12,8 @@ from datetime import datetime
 import asyncio
 from weakref import WeakSet
 
+from holdem_cli.utils.logging_utils import get_logger
+
 
 class EventPriority(Enum):
     """Event processing priority levels."""
@@ -192,7 +194,7 @@ class EventBus:
             except asyncio.TimeoutError:
                 continue
             except Exception as e:
-                print(f"Error processing events: {e}")
+                get_logger().error(f"Error processing events: {e}")
 
     async def _process_event(self, event: Event):
         """Process a single event."""
@@ -219,14 +221,14 @@ class EventBus:
             try:
                 handler(event)
             except Exception as e:
-                print(f"Error in event handler: {e}")
+                get_logger().error(f"Error in event handler: {e}")
 
         # Deliver to async handlers
         for handler in all_async_handlers:
             try:
                 await handler(event)
             except Exception as e:
-                print(f"Error in async event handler: {e}")
+                get_logger().error(f"Error in async event handler: {e}")
 
     def subscribe(
         self,

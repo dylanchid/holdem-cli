@@ -31,6 +31,7 @@ from .tui.widgets.matrix import HandMatrix, HandAction, ChartAction, create_samp
 from .tui.core.state import ChartViewerState
 from holdem_cli.storage import Database, init_database
 from holdem_cli.services.container import get_container
+from holdem_cli.utils.logging_utils import get_logger
 
 
 class ChartViewerApp(App):
@@ -257,9 +258,9 @@ class ChartViewerApp(App):
             self._cleanup_database()
 
             # Log successful shutdown
-            print("TUI closed successfully")
+            get_logger().info("TUI closed successfully")
         except Exception as e:
-            print(f"Error during TUI cleanup: {e}")
+            get_logger().error(f"Error during TUI cleanup: {e}")
 
     def _clear_widget_caches(self) -> None:
         """Clear render caches for all matrix widgets."""
@@ -278,7 +279,7 @@ class ChartViewerApp(App):
                 if hasattr(widget, '_last_actions_hash'):
                     setattr(widget, '_last_actions_hash', None)
         except Exception as e:
-            print(f"Warning: Could not clear widget caches: {e}")
+            get_logger().warning(f"Could not clear widget caches: {e}")
 
     def _cleanup_database(self) -> None:
         """Clean up database connections."""
@@ -286,7 +287,7 @@ class ChartViewerApp(App):
             if hasattr(self.db, 'close'):
                 self.db.close()
         except Exception as e:
-            print(f"Warning: Could not close database connection: {e}")
+            get_logger().warning(f"Could not close database connection: {e}")
 
     def on_hand_selected(self, message: HandSelected) -> None:
         """Handle hand selection."""

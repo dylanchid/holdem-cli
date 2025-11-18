@@ -18,6 +18,7 @@ from holdem_cli.storage import Database
 from holdem_cli.charts.tui.widgets.matrix import create_sample_range
 # from holdem_cli.charts.tui.core.cache import SmartCache
 from .chart_utils import get_chart_statistics, validate_chart
+from holdem_cli.utils.logging_utils import get_logger
 
 
 @dataclass
@@ -199,7 +200,7 @@ class ChartService:
                 # In a real implementation, save to database
                 # self.db.save_chart(chart_id, chart_data)
             except Exception as e:
-                print(f"Warning: Failed to save to database: {e}")
+                get_logger().warning(f"Failed to save to database: {e}")
 
         # Update cache
         cache_key = f"chart_{chart_id}"

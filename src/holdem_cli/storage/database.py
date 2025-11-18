@@ -7,6 +7,8 @@ from typing import Optional, Dict, Any, List
 from datetime import datetime
 import json
 
+from holdem_cli.utils.logging_utils import get_logger
+
 
 def get_database_path() -> Path:
     """Get the standard database path based on OS."""
@@ -181,21 +183,23 @@ class Database:
             "CREATE INDEX IF NOT EXISTS idx_charts_name ON charts(name)"
         ]
 
+        logger = get_logger()
         cursor = self.connection.cursor()
         for index_sql in indexes:
             try:
                 cursor.execute(index_sql)
             except Exception as e:
                 # Log warning but don't fail if index creation fails
-                print(f"Warning: Could not create index: {e}")
+                logger.warning(f"Could not create index: {e}")
         self.connection.commit()
 
     def optimize_database(self) -> None:
         """Optimize database performance by creating indexes."""
         """Create performance indexes for existing database."""
-        print("🔧 Optimizing database with performance indexes...")
+        logger = get_logger()
+        logger.info("Optimizing database with performance indexes...")
         self._create_indexes()
-        print("✅ Database optimization complete")
+        logger.info("Database optimization complete")
 
     def get_database_info(self) -> Dict[str, Any]:
         """Get database information including size and index status."""
