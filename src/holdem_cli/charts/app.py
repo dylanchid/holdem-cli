@@ -30,11 +30,7 @@ from .tui.widgets import HelpDialog, HandMatrixWidget, HandDetailsWidget, ChartC
 from .tui.widgets.matrix import HandMatrix, HandAction, ChartAction, create_sample_range
 from .tui.core.state import ChartViewerState
 from holdem_cli.storage import Database, init_database
-
-# Import new services
-# from holdem_cli.services.charts.chart_service import get_chart_service, ChartService
-# from holdem_cli.services.charts.navigation_service import get_navigation_service, NavigationService, Direction
-# from holdem_cli.services.charts.ui_service import get_ui_service, UIService, NotificationType
+from holdem_cli.services.container import get_container
 
 
 class ChartViewerApp(App):
@@ -54,10 +50,11 @@ class ChartViewerApp(App):
         super().__init__(**kwargs)
         self.chart_name = chart_name
 
-        # Initialize services
-        self.chart_service = get_chart_service()
-        self.navigation_service = get_navigation_service()
-        self.ui_service = get_ui_service()
+        # Initialize services from container
+        container = get_container()
+        self.chart_service = container.chart_service
+        self.navigation_service = container.navigation_service
+        self.ui_service = container.ui_service
 
         # Initialize state
         self.state = ChartViewerState()
@@ -440,7 +437,11 @@ class ChartViewerApp(App):
 
     def _export_chart_in_multiple_formats(self, metadata) -> List[str]:
         """Export chart in multiple formats and return list of exported file paths."""
-        base_name = self.chart_name.lower().replace(' ', '_')
+        import os
+        # Sanitize chart name to prevent path traversal attacks
+        safe_name = os.path.basename(self.chart_name)  # Remove any directory components
+        safe_name = safe_name.replace('..', '_')  # Remove parent directory references
+        base_name = safe_name.lower().replace(' ', '_')
         exported_files = []
 
         # Export to JSON
