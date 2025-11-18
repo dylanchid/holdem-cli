@@ -8,107 +8,50 @@ from pathlib import Path
 from typing import Dict, Optional, List, Any
 
 from holdem_cli.types import HandAction, ChartAction
-# from holdem_cli.charts.tui.widgets.matrix import HandMatrix, ChartComparison, create_sample_range
-# from holdem_cli.charts.tui import launch_interactive_chart_viewer, launch_chart_quiz, create_chart_from_file
-# from holdem_cli.charts.tui.gto_library import GTOChartLibrary, Position, Scenario, StackDepth
 from holdem_cli.storage import Database, init_database
+from holdem_cli.services.charts.chart_repository import ChartRepository
 
 
 class ChartManager:
-    """Manages chart storage and retrieval."""
-    
+    """
+    Manages chart storage and retrieval.
+
+    This class delegates to ChartRepository for all database operations,
+    providing a backward-compatible interface.
+    """
+
     def __init__(self, db: Database):
         self.db = db
-    
-    def save_chart(self, name: str, spot: str, actions: Dict[str, HandAction], 
-                   stack_depth: int = 100, position_hero: str = "", 
+        self._repository = ChartRepository(db)
+
+    def save_chart(self, name: str, spot: str, actions: Dict[str, HandAction],
+                   stack_depth: int = 100, position_hero: str = "",
                    position_villain: str = "") -> int:
         """Save chart to database."""
-        # Convert actions to JSON
-        chart_data = {
-            hand: {
-                "action": action.action.value,
-                "frequency": action.frequency,
-                "ev": action.ev,
-                "notes": action.notes
-            }
-            for hand, action in actions.items()
-        }
-        
-        cursor = self.db.connection.cursor()
-        cursor.execute("""
-            INSERT INTO charts (name, spot, stack_depth, position_hero, position_villain, data)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (name, spot, stack_depth, position_hero, position_villain, json.dumps(chart_data)))
-        
-        self.db.connection.commit()
-        chart_id = cursor.lastrowid
-        if chart_id is None:
-            raise RuntimeError("Failed to insert chart into database")
-        return chart_id
-    
+        return self._repository.save(
+            name=name,
+            spot=spot,
+            actions=actions,
+            stack_depth=stack_depth,
+            position_hero=position_hero,
+            position_villain=position_villain
+        )
+
     def load_chart(self, chart_id: int) -> Optional[Dict[str, HandAction]]:
         """Load chart from database by ID."""
-        cursor = self.db.connection.cursor()
-        cursor.execute("SELECT data FROM charts WHERE id = ?", (chart_id,))
-        row = cursor.fetchone()
-        
-        if not row:
-            return None
-        
-        chart_data = json.loads(row[0])
-        actions = {}
-        
-        for hand, action_data in chart_data.items():
-            action = ChartAction(action_data["action"])
-            actions[hand] = HandAction(
-                action=action,
-                frequency=action_data["frequency"],
-                ev=action_data.get("ev"),
-                notes=action_data.get("notes", "")
-            )
-        
-        return actions
-    
+        return self._repository.load_by_id(chart_id)
+
     def load_chart_by_name(self, name: str) -> Optional[Dict[str, HandAction]]:
         """Load chart from database by name."""
-        cursor = self.db.connection.cursor()
-        cursor.execute("SELECT data FROM charts WHERE name = ? ORDER BY created_at DESC LIMIT 1", (name,))
-        row = cursor.fetchone()
-        
-        if not row:
-            return None
-        
-        chart_data = json.loads(row[0])
-        actions = {}
-        
-        for hand, action_data in chart_data.items():
-            action = ChartAction(action_data["action"])
-            actions[hand] = HandAction(
-                action=action,
-                frequency=action_data["frequency"],
-                ev=action_data.get("ev"),
-                notes=action_data.get("notes", "")
-            )
-        
-        return actions
-    
+        return self._repository.load_by_name(name)
+
     def list_charts(self) -> List[Dict[str, Any]]:
         """List all saved charts."""
-        cursor = self.db.connection.cursor()
-        cursor.execute("""
-            SELECT id, name, spot, stack_depth, position_hero, position_villain, created_at
-            FROM charts ORDER BY created_at DESC
-        """)
-        
-        return [dict(row) for row in cursor.fetchall()]
-    
+        return self._repository.list_charts_as_dicts()
+
     def delete_chart(self, chart_id: int) -> bool:
         """Delete chart from database."""
-        cursor = self.db.connection.cursor()
-        cursor.execute("DELETE FROM charts WHERE id = ?", (chart_id,))
-        self.db.connection.commit()
-        return cursor.rowcount > 0
+        return self._repository.delete(chart_id)
 
 
 # Add to main CLI (extend cli.py)
