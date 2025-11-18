@@ -8,7 +8,7 @@ from holdem_cli.storage import init_database
 from holdem_cli.charts.tui.widgets.matrix import (
     ChartAction, ChartComparison, create_sample_range
 )
-from holdem_cli.charts.chart_tui import launch_chart_quiz
+from holdem_cli.charts.utils import launch_chart_quiz
 from holdem_cli.charts.chart_cli import ChartManager
 
 

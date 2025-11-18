@@ -10,7 +10,7 @@ from holdem_cli.storage import init_database
 from holdem_cli.charts.tui.widgets.matrix import (
     HandMatrix, HandAction, ChartAction, create_sample_range
 )
-from holdem_cli.charts.chart_tui import launch_interactive_chart_viewer
+from holdem_cli.charts.utils import launch_interactive_chart_viewer, create_chart_from_file
 from holdem_cli.charts.chart_cli import ChartManager
 
 
@@ -160,8 +160,6 @@ def register_core_commands(charts_group):
           holdem charts import ranges.txt --format simple --name "My Range"
         """
         try:
-            from holdem_cli.charts.chart_tui import create_chart_from_file
-
             actions = create_chart_from_file(filepath, format)
 
             if not actions:
