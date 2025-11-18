@@ -57,7 +57,90 @@ class PokerSimulator:
 
         if seed is not None:
             self._random.seed(seed)
-    
+
+    def _process_fold_action(self, player: PlayerState, action: PlayerAction,
+                            actions: List[Dict], players: List[PlayerState]) -> bool:
+        """Process a fold action. Returns True if hand is over."""
+        player.has_folded = True
+        actions.append({
+            "player": player.name,
+            "action": "fold",
+            "amount": 0,
+            "reasoning": action.reasoning
+        })
+        return sum(1 for p in players if not p.has_folded) <= 1
+
+    def _process_call_action(self, player: PlayerState, action: PlayerAction,
+                            actions: List[Dict], current_bet: int) -> int:
+        """Process a call action. Returns the pot contribution."""
+        import click
+        call_amount = current_bet - player.current_bet
+        actual_call = min(call_amount, player.chips)
+        player.current_bet += actual_call
+        player.chips -= actual_call
+        player.has_acted = True
+
+        actions.append({
+            "player": player.name,
+            "action": "call",
+            "amount": actual_call,
+            "reasoning": action.reasoning
+        })
+
+        if player.name == 'Human':
+            click.echo(f"You called ${actual_call}")
+        else:
+            click.echo(f"AI called ${actual_call}")
+
+        return actual_call
+
+    def _process_check_action(self, player: PlayerState, action: PlayerAction,
+                             actions: List[Dict]) -> None:
+        """Process a check action."""
+        import click
+        player.has_acted = True
+        actions.append({
+            "player": player.name,
+            "action": "check",
+            "amount": 0,
+            "reasoning": action.reasoning
+        })
+
+        if player.name == 'Human':
+            click.echo("You checked")
+        else:
+            click.echo("AI checked")
+
+    def _process_bet_action(self, player: PlayerState, action: PlayerAction,
+                           actions: List[Dict], players: List[PlayerState]) -> Tuple[int, int]:
+        """Process a bet/raise action. Returns (pot_contribution, new_current_bet)."""
+        import click
+        bet_amount = min(action.amount, player.chips)
+        additional_bet = bet_amount - player.current_bet
+        player.current_bet = bet_amount
+        player.chips -= additional_bet
+        player.has_acted = True
+
+        # Reset other players' acted status since there's a new bet
+        for other_player in players:
+            if other_player != player and not other_player.has_folded:
+                other_player.has_acted = False
+
+        action_name = "bet" if action.action == Action.BET else "raise"
+        actions.append({
+            "player": player.name,
+            "action": action_name,
+            "amount": bet_amount,
+            "reasoning": action.reasoning
+        })
+
+        if player.name == 'Human':
+            click.echo(f"You {action_name} ${bet_amount}")
+        else:
+            click.echo(f"AI {action_name} ${bet_amount}")
+
+        return additional_bet, bet_amount
+
     def _deal_starting_hands(self, deck: Deck) -> Tuple[List[Card], List[Card]]:
         """Deal starting hands for player and AI."""
         player_cards = deck.deal(2)
@@ -140,36 +223,29 @@ class PokerSimulator:
                 click.echo("\nGame cancelled.")
                 return PlayerAction(Action.FOLD, reasoning="Player cancelled")
     
-    def _run_betting_round(self, street: str, players: List[PlayerState], 
+    def _run_betting_round(self, street: str, players: List[PlayerState],
                           board: List[Card], pot_size: int) -> Tuple[int, List[Dict], bool]:
         """Run a complete betting round and return (new_pot_size, actions, hand_over)."""
-        import click
-        
         actions = []
         current_bet = 0
         pot_contribution = 0
         hand_over = False
-        
+
         # Reset betting state for new round
         for player in players:
             if not player.has_folded:
                 player.current_bet = 0
                 player.has_acted = False
-        
+
         # Continue until all active players have acted and bets are equal
         betting_complete = False
         while not betting_complete and sum(1 for p in players if not p.has_folded) > 1:
-            all_acted = True
-            bets_equal = True
-            
             for player in players:
                 if player.has_folded:
                     continue
-                    
+
                 # Check if player needs to act
                 if not player.has_acted or player.current_bet < current_bet:
-                    all_acted = False
-                    
                     game_state = GameState(
                         pot_size=pot_size + pot_contribution,
                         bet_to_call=current_bet,
@@ -180,96 +256,83 @@ class PokerSimulator:
                         num_players=2,
                         num_active_players=sum(1 for p in players if not p.has_folded)
                     )
-                    
+
                     if player.name == 'Human':
-                        action = self._get_user_action(game_state, player.cards, 
+                        action = self._get_user_action(game_state, player.cards,
                                                      player.chips, player.current_bet)
                     else:
                         action = self.ai_player.decide_action(player.cards, game_state)
-                    
-                    # Process action
+
+                    # Process action using helper methods
                     if action.action == Action.FOLD:
-                        player.has_folded = True
-                        actions.append({
-                            "player": player.name,
-                            "action": "fold",
-                            "amount": 0,
-                            "reasoning": action.reasoning
-                        })
-                        if sum(1 for p in players if not p.has_folded) <= 1:
-                            hand_over = True
+                        hand_over = self._process_fold_action(player, action, actions, players)
+                        if hand_over:
                             break
-                    
+
                     elif action.action == Action.CALL:
-                        call_amount = current_bet - player.current_bet
-                        actual_call = min(call_amount, player.chips)
-                        player.current_bet += actual_call
-                        player.chips -= actual_call
-                        pot_contribution += actual_call
-                        player.has_acted = True
-                        
-                        actions.append({
-                            "player": player.name,
-                            "action": "call",
-                            "amount": actual_call,
-                            "reasoning": action.reasoning
-                        })
-                        
-                        if player.name == 'Human':
-                            click.echo(f"You called ${actual_call}")
-                        else:
-                            click.echo(f"AI called ${actual_call}")
-                    
+                        pot_contribution += self._process_call_action(player, action, actions, current_bet)
+
                     elif action.action == Action.CHECK:
-                        player.has_acted = True
-                        actions.append({
-                            "player": player.name,
-                            "action": "check",
-                            "amount": 0,
-                            "reasoning": action.reasoning
-                        })
-                        
-                        if player.name == 'Human':
-                            click.echo("You checked")
-                        else:
-                            click.echo("AI checked")
-                    
+                        self._process_check_action(player, action, actions)
+
                     elif action.action in [Action.BET, Action.RAISE]:
-                        bet_amount = min(action.amount, player.chips)
-                        additional_bet = bet_amount - player.current_bet
-                        player.current_bet = bet_amount
-                        player.chips -= additional_bet
-                        pot_contribution += additional_bet
-                        current_bet = bet_amount
-                        player.has_acted = True
-                        
-                        # Reset other players' acted status since there's a new bet
-                        for other_player in players:
-                            if other_player != player and not other_player.has_folded:
-                                other_player.has_acted = False
-                        
-                        action_name = "bet" if action.action == Action.BET else "raise"
-                        actions.append({
-                            "player": player.name,
-                            "action": action_name,
-                            "amount": bet_amount,
-                            "reasoning": action.reasoning
-                        })
-                        
-                        if player.name == 'Human':
-                            click.echo(f"You {action_name} ${bet_amount}")
-                        else:
-                            click.echo(f"AI {action_name} ${bet_amount}")
-                    
+                        additional, current_bet = self._process_bet_action(player, action, actions, players)
+                        pot_contribution += additional
+
                     if hand_over:
                         break
-            
+
             # Check if betting is complete
-            if all_acted and all(p.current_bet == current_bet or p.has_folded for p in players):
+            all_acted = all(p.has_acted or p.has_folded for p in players)
+            bets_equal = all(p.current_bet == current_bet or p.has_folded for p in players)
+            if all_acted and bets_equal:
                 betting_complete = True
-        
+
         return pot_size + pot_contribution, actions, hand_over
     
+    def _run_street(self, street: str, deck: Deck, players: List[PlayerState],
+                    board: List[Card], pot_size: int,
+                    betting_rounds: List[BettingRound],
+                    action_history: List[Dict]) -> Tuple[int, bool]:
+        """Run a single street (flop/turn/river). Returns (new_pot_size, hand_over)."""
+        import click
+
+        # Deal board cards
+        board.extend(self._deal_board(deck, street))
+
+        # Display street info
+        click.echo(f"\n=== {street.upper()} ===")
+        click.echo(f"Board: {', '.join(str(c) for c in board)}")
+
+        # Run betting
+        pot_before = pot_size
+        pot_size, street_actions, hand_over = self._run_betting_round(
+            street, players, board, pot_size
+        )
+        betting_rounds.append(BettingRound(street, street_actions, pot_before, pot_size))
+        action_history.extend(street_actions)
+
+        return pot_size, hand_over
+
+    def _create_hand_result(self, winner: str, pot_size: int, human_cards: List[Card],
+                           ai_cards: List[Card], board: List[Card],
+                           action_history: List[Dict], final_hands: Dict[str, str],
+                           reasoning: List[str], betting_rounds: List[BettingRound],
+                           showdown_occurred: bool) -> HandResult:
+        """Create a HandResult object."""
+        return HandResult(
+            winner=winner,
+            pot_size=pot_size,
+            player_cards=human_cards,
+            ai_cards=ai_cards,
+            board=board,
+            action_history=action_history,
+            final_hands=final_hands,
+            reasoning=reasoning,
+            betting_rounds=betting_rounds,
+            showdown_occurred=showdown_occurred
+        )
+
     def _determine_winner(self, players: List[PlayerState], board: List[Card]) -> Tuple[str, Dict[str, str]]:
         """Determine winner and hand descriptions."""
         active_players = [p for p in players if not p.has_folded]
@@ -300,15 +363,15 @@ class PokerSimulator:
 
         return winner or "Unknown", hands
     
-    def simulate_hand(self, player_cards: Optional[List[Card]] = None, 
+    def simulate_hand(self, player_cards: Optional[List[Card]] = None,
                      starting_chips: int = 1000) -> HandResult:
         """Simulate a complete poker hand with full betting rounds."""
         import click
-        
+
         # Initialize deck and deal cards
         deck = Deck()
         deck.shuffle()
-        
+
         if player_cards is None:
             human_cards, ai_cards = self._deal_starting_hands(deck)
         else:
@@ -318,29 +381,29 @@ class PokerSimulator:
             deck.shuffle()
             human_cards = player_cards
             ai_cards = deck.deal(2)
-        
+
         # Initialize players
         players = [
             PlayerState("Human", human_cards, starting_chips),
             PlayerState("AI", ai_cards, starting_chips)
         ]
-        
-        # Game state
-        pot_size = 30  # Blinds: small blind (10) + big blind (20)
-        players[0].chips -= 10  # Human posts small blind
-        players[1].chips -= 20  # AI posts big blind
+
+        # Post blinds
+        pot_size = 30  # small blind (10) + big blind (20)
+        players[0].chips -= 10
+        players[1].chips -= 20
         players[0].current_bet = 10
         players[1].current_bet = 20
-        
+
         action_history = []
         reasoning = []
         betting_rounds = []
         board = []
-        
-        click.echo(f"\n🎰 Starting new hand against {self.ai_level} AI")
-        click.echo(f"💰 Starting pot: ${pot_size} (blinds posted)")
+
+        click.echo(f"\nStarting new hand against {self.ai_level} AI")
+        click.echo(f"Starting pot: ${pot_size} (blinds posted)")
         click.echo(f"Your cards: {', '.join(str(c) for c in human_cards)}")
-        
+
         # Preflop betting round
         click.echo(f"\n=== PREFLOP ===")
         pot_size, preflop_actions, hand_over = self._run_betting_round(
@@ -348,112 +411,39 @@ class PokerSimulator:
         )
         betting_rounds.append(BettingRound('preflop', preflop_actions, 30, pot_size))
         action_history.extend(preflop_actions)
-        
+
         if hand_over:
             winner, final_hands = self._determine_winner(players, board)
-            return HandResult(
-                winner=winner,
-                pot_size=pot_size,
-                player_cards=human_cards,
-                ai_cards=ai_cards,
-                board=board,
-                action_history=action_history,
-                final_hands=final_hands,
-                reasoning=reasoning,
-                betting_rounds=betting_rounds,
-                showdown_occurred=False
+            return self._create_hand_result(
+                winner, pot_size, human_cards, ai_cards, board,
+                action_history, final_hands, reasoning, betting_rounds, False
             )
-        
-        # Flop
-        board.extend(self._deal_board(deck, 'flop'))
-        click.echo(f"\n=== FLOP ===")
-        click.echo(f"🃏 Board: {', '.join(str(c) for c in board)}")
-        
-        pot_before_flop = pot_size
-        pot_size, flop_actions, hand_over = self._run_betting_round(
-            'flop', players, board, pot_size
-        )
-        betting_rounds.append(BettingRound('flop', flop_actions, pot_before_flop, pot_size))
-        action_history.extend(flop_actions)
-        
-        if hand_over:
-            winner, final_hands = self._determine_winner(players, board)
-            return HandResult(
-                winner=winner,
-                pot_size=pot_size,
-                player_cards=human_cards,
-                ai_cards=ai_cards,
-                board=board,
-                action_history=action_history,
-                final_hands=final_hands,
-                reasoning=reasoning,
-                betting_rounds=betting_rounds,
-                showdown_occurred=False
+
+        # Post-flop streets
+        for street in ['flop', 'turn', 'river']:
+            pot_size, hand_over = self._run_street(
+                street, deck, players, board, pot_size, betting_rounds, action_history
             )
-        
-        # Turn
-        board.extend(self._deal_board(deck, 'turn'))
-        click.echo(f"\n=== TURN ===")
-        click.echo(f"🃏 Board: {', '.join(str(c) for c in board)}")
-        
-        pot_before_turn = pot_size
-        pot_size, turn_actions, hand_over = self._run_betting_round(
-            'turn', players, board, pot_size
-        )
-        betting_rounds.append(BettingRound('turn', turn_actions, pot_before_turn, pot_size))
-        action_history.extend(turn_actions)
-        
-        if hand_over:
-            winner, final_hands = self._determine_winner(players, board)
-            return HandResult(
-                winner=winner,
-                pot_size=pot_size,
-                player_cards=human_cards,
-                ai_cards=ai_cards,
-                board=board,
-                action_history=action_history,
-                final_hands=final_hands,
-                reasoning=reasoning,
-                betting_rounds=betting_rounds,
-                showdown_occurred=False
-            )
-        
-        # River
-        board.extend(self._deal_board(deck, 'river'))
-        click.echo(f"\n=== RIVER ===")
-        click.echo(f"🃏 Board: {', '.join(str(c) for c in board)}")
-        
-        pot_before_river = pot_size
-        pot_size, river_actions, hand_over = self._run_betting_round(
-            'river', players, board, pot_size
-        )
-        betting_rounds.append(BettingRound('river', river_actions, pot_before_river, pot_size))
-        action_history.extend(river_actions)
-        
-        # Showdown (unless someone folded)
+            if hand_over:
+                winner, final_hands = self._determine_winner(players, board)
+                return self._create_hand_result(
+                    winner, pot_size, human_cards, ai_cards, board,
+                    action_history, final_hands, reasoning, betting_rounds, False
+                )
+
+        # Showdown
         winner, final_hands = self._determine_winner(players, board)
-        showdown_occurred = not hand_over
-        
-        if showdown_occurred:
-            click.echo(f"\n=== SHOWDOWN ===")
-            for player in players:
-                if not player.has_folded:
-                    click.echo(f"{player.name}: {final_hands[player.name]}")
-        
-        click.echo(f"\n🏆 Winner: {winner}")
-        click.echo(f"💰 Pot size: ${pot_size}")
-        
-        result = HandResult(
-            winner=winner,
-            pot_size=pot_size,
-            player_cards=human_cards,
-            ai_cards=ai_cards,
-            board=board,
-            action_history=action_history,
-            final_hands=final_hands,
-            reasoning=reasoning,
-            betting_rounds=betting_rounds,
-            showdown_occurred=showdown_occurred
+        click.echo(f"\n=== SHOWDOWN ===")
+        for player in players:
+            if not player.has_folded:
+                click.echo(f"{player.name}: {final_hands[player.name]}")
+
+        click.echo(f"\nWinner: {winner}")
+        click.echo(f"Pot size: ${pot_size}")
+
+        result = self._create_hand_result(
+            winner, pot_size, human_cards, ai_cards, board,
+            action_history, final_hands, reasoning, betting_rounds, True
         )
         
         self.hand_history.append(result)
