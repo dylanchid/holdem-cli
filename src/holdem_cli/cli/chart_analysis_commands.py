@@ -3,16 +3,17 @@
 
 import click
 import random
+from typing import Dict, Any
 
-from holdem_cli.storage import init_database
+from holdem_cli.storage import init_database, Database
 from holdem_cli.charts.tui.widgets.matrix import (
-    ChartAction, ChartComparison, create_sample_range
+    ChartAction, ChartComparison, create_sample_range, HandAction
 )
 from holdem_cli.charts.utils import launch_chart_quiz
 from holdem_cli.charts.chart_cli import ChartManager
 
 
-def register_analysis_commands(charts_group):
+def register_analysis_commands(charts_group: click.Group) -> None:
     """Register chart analysis commands to the charts group."""
 
     @charts_group.command('quiz')
@@ -149,7 +150,13 @@ def register_analysis_commands(charts_group):
             click.echo(f"Error comparing charts: {e}")
 
 
-def _run_simple_chart_quiz(actions, count, profile, chart_name, db):
+def _run_simple_chart_quiz(
+    actions: Dict[str, HandAction],
+    count: int,
+    profile: str,
+    chart_name: str,
+    db: Database
+) -> None:
     """Run a simple terminal-based chart quiz."""
     hands = list(actions.keys())
     if len(hands) < count:

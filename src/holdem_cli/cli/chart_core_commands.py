@@ -4,7 +4,7 @@
 import click
 import json
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict
 
 from holdem_cli.storage import init_database
 from holdem_cli.charts.tui.widgets.matrix import (
@@ -14,7 +14,7 @@ from holdem_cli.charts.utils import launch_interactive_chart_viewer, create_char
 from holdem_cli.charts.chart_cli import ChartManager
 
 
-def register_core_commands(charts_group):
+def register_core_commands(charts_group: click.Group) -> None:
     """Register core chart commands to the charts group."""
 
     @charts_group.command('list')
@@ -268,9 +268,9 @@ def register_core_commands(charts_group):
 
 # Helper functions for templates
 
-def _create_tight_template():
+def _create_tight_template() -> Dict[str, HandAction]:
     """Create a tight range template."""
-    actions = {}
+    actions: Dict[str, HandAction] = {}
 
     # Very premium hands
     premium = ["AA", "KK", "QQ", "JJ", "AKs", "AKo"]
@@ -287,9 +287,9 @@ def _create_tight_template():
     return actions
 
 
-def _create_loose_template():
+def _create_loose_template() -> Dict[str, HandAction]:
     """Create a loose range template."""
-    actions = {}
+    actions: Dict[str, HandAction] = {}
 
     # Many raising hands
     raise_hands = ["AA", "KK", "QQ", "JJ", "TT", "99", "88", "77", "66",

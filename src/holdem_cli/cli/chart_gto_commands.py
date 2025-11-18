@@ -10,7 +10,7 @@ from holdem_cli.charts.chart_cli import ChartManager
 from holdem_cli.charts.gto_library import GTOChartLibrary
 
 
-def register_gto_commands(charts_group):
+def register_gto_commands(charts_group: click.Group) -> None:
     """Register GTO chart commands to the charts group."""
 
     @charts_group.command('library')
