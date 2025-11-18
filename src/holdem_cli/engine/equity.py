@@ -1,12 +1,13 @@
 """Monte Carlo equity calculator for poker hands."""
 
 import asyncio
+import random
 from concurrent.futures import ThreadPoolExecutor
 from typing import List, Dict, Tuple, Optional, Union
 from dataclasses import dataclass
 from itertools import combinations
 
-from .cards import Card, Deck, HandEvaluator, HandStrength
+from .cards import Card, Deck, HandEvaluator, HandStrength, Rank, Suit
 from ..utils.random_utils import get_global_random, set_global_seed
 
 
@@ -43,9 +44,11 @@ class EquityCalculator:
 
     def __init__(self, seed: Optional[int] = None) -> None:
         """Initialize with optional deterministic seeding for tests."""
-        self._random = get_global_random()
         if seed is not None:
-            self._random.seed(seed)
+            # Use a local Random instance for deterministic behavior
+            self._random = random.Random(seed)
+        else:
+            self._random = get_global_random()
         self._seed = seed
     
     def calculate_equity(
@@ -84,23 +87,30 @@ class EquityCalculator:
         hand1_wins = 0
         hand2_wins = 0
         ties = 0
-        
+
+        # Pre-compute available cards once (optimization: avoid creating deck each iteration)
+        all_known_cards = set(hand1 + hand2 + board)
+        available_cards = [
+            Card(rank, suit)
+            for rank in Rank
+            for suit in Suit
+            if Card(rank, suit) not in all_known_cards
+        ]
+
+        cards_needed = 5 - len(board)
+
         for _ in range(iterations):
-            # Create deck without known cards
-            deck = Deck(seed=self._seed)
-            deck.cards = [c for c in deck.cards if c not in all_cards]
-            deck.shuffle()
-            
-            # Complete the board to 5 cards
-            sim_board = board.copy()
-            cards_needed = 5 - len(sim_board)
+            # Sample cards for the board efficiently
             if cards_needed > 0:
-                sim_board.extend(deck.deal(cards_needed))
-            
+                sampled = self._random.sample(available_cards, cards_needed)
+                sim_board = board + sampled
+            else:
+                sim_board = board
+
             # Evaluate both hands
             hand1_strength = HandEvaluator.evaluate_hand(hand1 + sim_board)
             hand2_strength = HandEvaluator.evaluate_hand(hand2 + sim_board)
-            
+
             # Compare results
             if hand1_strength > hand2_strength:
                 hand1_wins += 1
@@ -147,15 +157,15 @@ class EquityCalculator:
         Returns:
             EquityResult with win/tie/lose percentages
         """
-        loop = asyncio.get_event_loop()
+        # Use get_running_loop() instead of deprecated get_event_loop()
+        loop = asyncio.get_running_loop()
 
         # Run the synchronous calculation in a thread pool
-        with ThreadPoolExecutor() as executor:
-            result = await loop.run_in_executor(
-                executor,
-                self.calculate_equity,
-                hand1, hand2, board, iterations
-            )
+        result = await loop.run_in_executor(
+            None,  # Use default executor
+            self.calculate_equity,
+            hand1, hand2, board, iterations
+        )
 
         return result
 
