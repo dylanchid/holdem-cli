@@ -43,7 +43,9 @@ class TestCLIIntegration:
                  patch('holdem_cli.cli.quiz_commands.init_database') as mock_quiz_db, \
                  patch('holdem_cli.cli.simulate_commands.init_database') as mock_sim_db, \
                  patch('holdem_cli.cli.profile_commands.init_database') as mock_profile_db, \
-                 patch('holdem_cli.cli.chart_commands.init_database') as mock_chart_db, \
+                 patch('holdem_cli.cli.chart_core_commands.init_database') as mock_chart_core_db, \
+                 patch('holdem_cli.cli.chart_gto_commands.init_database') as mock_chart_gto_db, \
+                 patch('holdem_cli.cli.chart_analysis_commands.init_database') as mock_chart_analysis_db, \
                  patch('holdem_cli.storage.get_database_path', return_value=db_path), \
                  patch('holdem_cli.storage.database.get_database_path', return_value=db_path):
                 # Configure mocks to return a real database for testing
@@ -51,7 +53,9 @@ class TestCLIIntegration:
                 mock_quiz_db.side_effect = lambda: real_init_db(db_path)
                 mock_sim_db.side_effect = lambda: real_init_db(db_path)
                 mock_profile_db.side_effect = lambda: real_init_db(db_path)
-                mock_chart_db.side_effect = lambda: real_init_db(db_path)
+                mock_chart_core_db.side_effect = lambda: real_init_db(db_path)
+                mock_chart_gto_db.side_effect = lambda: real_init_db(db_path)
+                mock_chart_analysis_db.side_effect = lambda: real_init_db(db_path)
                 yield db_path
 
     def test_cli_main_group_help(self, runner):
@@ -237,7 +241,9 @@ class TestCLIErrorHandling:
                  patch('holdem_cli.cli.quiz_commands.init_database') as mock_quiz_db, \
                  patch('holdem_cli.cli.simulate_commands.init_database') as mock_sim_db, \
                  patch('holdem_cli.cli.profile_commands.init_database') as mock_profile_db, \
-                 patch('holdem_cli.cli.chart_commands.init_database') as mock_chart_db, \
+                 patch('holdem_cli.cli.chart_core_commands.init_database') as mock_chart_core_db, \
+                 patch('holdem_cli.cli.chart_gto_commands.init_database') as mock_chart_gto_db, \
+                 patch('holdem_cli.cli.chart_analysis_commands.init_database') as mock_chart_analysis_db, \
                  patch('holdem_cli.storage.get_database_path', return_value=db_path), \
                  patch('holdem_cli.storage.database.get_database_path', return_value=db_path):
                 # Configure mocks to return a real database for testing
@@ -245,7 +251,9 @@ class TestCLIErrorHandling:
                 mock_quiz_db.side_effect = lambda: real_init_db(db_path)
                 mock_sim_db.side_effect = lambda: real_init_db(db_path)
                 mock_profile_db.side_effect = lambda: real_init_db(db_path)
-                mock_chart_db.side_effect = lambda: real_init_db(db_path)
+                mock_chart_core_db.side_effect = lambda: real_init_db(db_path)
+                mock_chart_gto_db.side_effect = lambda: real_init_db(db_path)
+                mock_chart_analysis_db.side_effect = lambda: real_init_db(db_path)
                 yield db_path
 
     def test_init_database_error(self, runner):
@@ -310,7 +318,9 @@ class TestCLIIntegrationWorkflows:
                  patch('holdem_cli.cli.quiz_commands.init_database') as mock_quiz_db, \
                  patch('holdem_cli.cli.simulate_commands.init_database') as mock_sim_db, \
                  patch('holdem_cli.cli.profile_commands.init_database') as mock_profile_db, \
-                 patch('holdem_cli.cli.chart_commands.init_database') as mock_chart_db, \
+                 patch('holdem_cli.cli.chart_core_commands.init_database') as mock_chart_core_db, \
+                 patch('holdem_cli.cli.chart_gto_commands.init_database') as mock_chart_gto_db, \
+                 patch('holdem_cli.cli.chart_analysis_commands.init_database') as mock_chart_analysis_db, \
                  patch('holdem_cli.storage.get_database_path', return_value=db_path), \
                  patch('holdem_cli.storage.database.get_database_path', return_value=db_path):
                 # Configure mocks to return a real database for testing
@@ -318,7 +328,9 @@ class TestCLIIntegrationWorkflows:
                 mock_quiz_db.side_effect = lambda: real_init_db(db_path)
                 mock_sim_db.side_effect = lambda: real_init_db(db_path)
                 mock_profile_db.side_effect = lambda: real_init_db(db_path)
-                mock_chart_db.side_effect = lambda: real_init_db(db_path)
+                mock_chart_core_db.side_effect = lambda: real_init_db(db_path)
+                mock_chart_gto_db.side_effect = lambda: real_init_db(db_path)
+                mock_chart_analysis_db.side_effect = lambda: real_init_db(db_path)
                 yield db_path
 
     def test_complete_user_workflow(self, runner, temp_db):
