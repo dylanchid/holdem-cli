@@ -12,9 +12,9 @@ from textual import on
 from textual.message import Message
 from typing import Dict, Optional, Any
 
-from ..services.quiz_service import get_quiz_service, QuizMode, QuizDifficulty
-from ..core.events import get_event_bus, EventType
-from ..widgets.matrix import HandAction
+from holdem_cli.services.charts.quiz_service import get_quiz_service, QuizMode, QuizDifficulty
+from holdem_cli.charts.tui.core.events import get_event_bus, EventType
+from holdem_cli.charts.tui.widgets.matrix import HandAction
 
 
 class QuizLauncherWidget(Static):

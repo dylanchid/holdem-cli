@@ -33,17 +33,17 @@ warnings.warn(
     stacklevel=2
 )
 
-from .tui.app import ChartViewerApp, ChartQuizApp
+from .app import ChartViewerApp
+from .quiz import ChartQuizApp
 from .tui.widgets import (
     HelpDialog,
     HandMatrixWidget,
     HandDetailsWidget,
     ChartControlsWidget,
     ChartImportDialog,
-    ErrorBoundaryWidget,
-    QuizLauncherWidget
+    ErrorBoundaryWidget
 )
-from .tui.messages import (
+from .messages import (
     HandSelected,
     LoadChartRequested,
     SaveChartRequested,
