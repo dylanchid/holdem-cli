@@ -597,19 +597,24 @@ class DatabaseService:
             self._cache.clear()
 
 
-# Global service instance
+# Global service instance (for backward compatibility)
 _db_service: Optional[DatabaseService] = None
 
 
 def get_database_service(config: DatabaseConfig = None) -> DatabaseService:
-    """Get or create the global database service instance."""
+    """
+    Get or create the global database service instance.
+
+    Note: Prefer using get_container().db_service for new code.
+    This function is maintained for backward compatibility.
+    """
     global _db_service
     if _db_service is None:
         _db_service = DatabaseService(config)
     return _db_service
 
 
-def reset_database_service():
+def reset_database_service() -> None:
     """Reset the global database service instance."""
     global _db_service
     if _db_service:

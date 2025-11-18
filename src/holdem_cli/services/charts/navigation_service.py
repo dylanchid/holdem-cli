@@ -456,19 +456,24 @@ class NavigationService:
         }
 
 
-# Global service instance
+# Global service instance (for backward compatibility)
 _navigation_service: Optional[NavigationService] = None
 
 
 def get_navigation_service() -> NavigationService:
-    """Get or create the global navigation service instance."""
+    """
+    Get or create the global navigation service instance.
+
+    Note: Prefer using get_container().navigation_service for new code.
+    This function is maintained for backward compatibility.
+    """
     global _navigation_service
     if _navigation_service is None:
         _navigation_service = NavigationService()
     return _navigation_service
 
 
-def reset_navigation_service():
+def reset_navigation_service() -> None:
     """Reset the global navigation service instance."""
     global _navigation_service
     _navigation_service = None

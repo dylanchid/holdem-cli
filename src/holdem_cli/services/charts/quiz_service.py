@@ -456,19 +456,24 @@ class QuizService:
         return scenarios.get(difficulty, scenarios[QuizDifficulty.MEDIUM])
 
 
-# Global quiz service instance
+# Global quiz service instance (for backward compatibility)
 _quiz_service: Optional[QuizService] = None
 
 
 def get_quiz_service() -> QuizService:
-    """Get or create the global quiz service instance."""
+    """
+    Get or create the global quiz service instance.
+
+    Note: Prefer using get_container().quiz_service for new code.
+    This function is maintained for backward compatibility.
+    """
     global _quiz_service
     if _quiz_service is None:
         _quiz_service = QuizService()
     return _quiz_service
 
 
-def reset_quiz_service():
+def reset_quiz_service() -> None:
     """Reset the global quiz service instance."""
     global _quiz_service
     _quiz_service = None

@@ -598,19 +598,24 @@ class ChartService:
         return actions
 
 
-# Global service instance
+# Global service instance (for backward compatibility)
 _chart_service: Optional[ChartService] = None
 
 
 def get_chart_service(db: Optional[Database] = None) -> ChartService:
-    """Get or create the global chart service instance."""
+    """
+    Get or create the global chart service instance.
+
+    Note: Prefer using get_container().chart_service for new code.
+    This function is maintained for backward compatibility.
+    """
     global _chart_service
     if _chart_service is None:
         _chart_service = ChartService(db)
     return _chart_service
 
 
-def reset_chart_service():
+def reset_chart_service() -> None:
     """Reset the global chart service instance."""
     global _chart_service
     _chart_service = None

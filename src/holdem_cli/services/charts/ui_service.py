@@ -541,19 +541,24 @@ class UIService:
             return f"❌ {operation} failed: {str(error)}"
 
 
-# Global service instance
+# Global service instance (for backward compatibility)
 _ui_service: Optional[UIService] = None
 
 
 def get_ui_service() -> UIService:
-    """Get or create the global UI service instance."""
+    """
+    Get or create the global UI service instance.
+
+    Note: Prefer using get_container().ui_service for new code.
+    This function is maintained for backward compatibility.
+    """
     global _ui_service
     if _ui_service is None:
         _ui_service = UIService()
     return _ui_service
 
 
-def reset_ui_service():
+def reset_ui_service() -> None:
     """Reset the global UI service instance."""
     global _ui_service
     if _ui_service:

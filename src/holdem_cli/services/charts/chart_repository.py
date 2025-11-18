@@ -313,13 +313,16 @@ class ChartRepository:
             return None
 
 
-# Global repository instance
+# Global repository instance (for backward compatibility)
 _chart_repository: Optional[ChartRepository] = None
 
 
 def get_chart_repository(db: Optional[Database] = None) -> ChartRepository:
     """
     Get the global chart repository instance.
+
+    Note: Prefer using get_container().chart_repository for new code.
+    This function is maintained for backward compatibility.
 
     Args:
         db: Database connection (required on first call)
