@@ -33,15 +33,15 @@ from ..charts.chart_cli import ChartManager
 class HoldemService:
     """Unified service for all Holdem CLI functionality."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the service with database connection."""
         self.db = init_database()
 
-    def __enter__(self):
+    def __enter__(self) -> "HoldemService":
         """Context manager entry."""
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Context manager exit with cleanup."""
         if hasattr(self, 'db'):
             self.db.close()
@@ -401,7 +401,7 @@ class HoldemService:
         except Exception as e:
             return False, f"Error exporting chart: {e}"
 
-    def _export_chart_to_json(self, chart_name: str, actions: Dict[str, HandAction], filepath: str):
+    def _export_chart_to_json(self, chart_name: str, actions: Dict[str, HandAction], filepath: str) -> None:
         """Export chart to JSON format."""
         export_data = {
             "name": chart_name,
@@ -422,7 +422,7 @@ class HoldemService:
         with open(filepath, 'w') as f:
             json.dump(export_data, f, indent=2)
 
-    def _export_chart_to_csv(self, chart_name: str, actions: Dict[str, HandAction], filepath: str):
+    def _export_chart_to_csv(self, chart_name: str, actions: Dict[str, HandAction], filepath: str) -> None:
         """Export chart to CSV format."""
         import csv
 
@@ -439,7 +439,7 @@ class HoldemService:
                     action.notes
                 ])
 
-    def _create_sample_chart_for_new_user(self):
+    def _create_sample_chart_for_new_user(self) -> None:
         """Create a sample chart for new users."""
         try:
             manager = ChartManager(self.db)
@@ -453,7 +453,7 @@ class HoldemService:
                 "BB"
             )
         except Exception as e:
-            print(f"Warning: Could not create sample chart: {e}")
+            log_error_and_continue(e, operation="create_sample_chart")
 
 
 # Convenience function for one-off operations

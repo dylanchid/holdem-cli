@@ -18,7 +18,7 @@ from .tui import launch_tui
 from .cli import main as cli_main
 
 
-def create_parser():
+def create_parser() -> argparse.ArgumentParser:
     """Create argument parser for the main entry point."""
     parser = argparse.ArgumentParser(
         description="Holdem CLI - Poker Training Tool",
@@ -40,7 +40,7 @@ def create_parser():
     return parser
 
 
-def main():
+def main() -> None:
     """Main entry point function."""
     parser = create_parser()
     args, remaining_args = parser.parse_known_args()

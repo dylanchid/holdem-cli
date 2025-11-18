@@ -211,7 +211,7 @@ class HoldemApp(App):
         self.exit()
 
 
-def launch_tui():
+def launch_tui() -> None:
     """Launch the TUI application."""
     app = HoldemApp()
     app.run()
