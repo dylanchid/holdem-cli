@@ -20,6 +20,7 @@ from .constants import DEFAULT_CHART_NAME
 from .tui.widgets.matrix import create_sample_range
 from holdem_cli.types import HandAction
 from holdem_cli.utils.error_handling import log_error_and_continue
+from holdem_cli.utils.logging_utils import get_logger
 
 # Re-export from loaders module
 from .loaders import (
@@ -76,17 +77,19 @@ def launch_chart_quiz(chart_data: Optional[Dict[str, HandAction]] = None) -> Non
 
 def demo_tui() -> None:
     """Demonstrate the TUI components."""
+    logger = get_logger()
+
     def signal_handler(sig, frame):
         """Handle interrupt signals gracefully."""
-        print("\nShutting down TUI gracefully...")
+        logger.info("Shutting down TUI gracefully...")
         sys.exit(0)
 
     # Set up signal handlers for better terminal handling
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
-    print("Starting Holdem CLI Chart TUI Demo...")
-    print("Press Ctrl+C to exit gracefully")
+    logger.info("Starting Holdem CLI Chart TUI Demo...")
+    logger.info("Press Ctrl+C to exit gracefully")
 
     try:
         # Create sample data
@@ -95,17 +98,18 @@ def demo_tui() -> None:
         # Run the chart viewer
         run_chart_viewer("Demo Chart")
     except KeyboardInterrupt:
-        print("\nTUI interrupted by user")
+        logger.info("TUI interrupted by user")
     except Exception as e:
         log_error_and_continue(e, operation="demo_tui")
-        print(f"TUI error: {e}")
+        logger.error(f"TUI error: {e}")
     finally:
-        print("TUI demo completed")
+        logger.info("TUI demo completed")
 
 
 def demo_quiz() -> None:
     """Demonstrate the quiz functionality."""
-    print("Starting Chart Quiz Demo...")
+    logger = get_logger()
+    logger.info("Starting Chart Quiz Demo...")
 
     sample_chart = create_sample_range()
     quiz_app = ChartQuizApp(sample_chart)

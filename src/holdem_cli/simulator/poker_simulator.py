@@ -7,6 +7,7 @@ from enum import Enum
 from ..engine.cards import Card, Deck, HandEvaluator
 from ..utils.random_utils import get_global_random
 from .ai_player import AIPlayer, GameState, Action, PlayerAction
+from ..utils.logging_utils import get_logger
 
 
 @dataclass
@@ -520,7 +521,7 @@ class PokerSimulator:
         with open(filename, 'w') as f:
             json.dump(export_data, f, indent=2)
 
-        print(f"Exported {len(self.hand_history)} hands to {filename} (JSON format)")
+        get_logger().info(f"Exported {len(self.hand_history)} hands to {filename} (JSON format)")
 
     def _export_hand_history_txt(self, filename: str) -> None:
         """Export hand history to human-readable text format."""
@@ -604,7 +605,7 @@ class PokerSimulator:
 
                 f.write("=" * 50 + "\n\n")
 
-        print(f"Exported {len(self.hand_history)} hands to {filename} (Text format)")
+        get_logger().info(f"Exported {len(self.hand_history)} hands to {filename} (Text format)")
     
     def get_session_statistics(self) -> Dict:
         """Get statistics for the current session."""

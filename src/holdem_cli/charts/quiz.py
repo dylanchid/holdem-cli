@@ -18,7 +18,8 @@ from datetime import datetime
 from .constants import QUIZ_BINDINGS, POSITIONS
 from .messages import QuizAnswerSelected, QuizQuestionRequested
 from holdem_cli.types import HandAction
-# from holdem_cli.charts.tui.widgets.matrix import create_sample_range
+from holdem_cli.charts.tui.widgets.matrix import create_sample_range
+from holdem_cli.utils.logging_utils import get_logger
 
 
 class ChartQuizApp(App):
@@ -283,7 +284,8 @@ def export_quiz_results(results: Dict[str, Any], filepath: str) -> None:
 
 def run_quiz_demo():
     """Run a demo of the quiz functionality."""
-    print("Starting Chart Quiz Demo...")
+    logger = get_logger()
+    logger.info("Starting Chart Quiz Demo...")
 
     # Create sample chart
     sample_chart = create_sample_range()

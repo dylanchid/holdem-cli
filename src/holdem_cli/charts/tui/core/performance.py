@@ -15,6 +15,7 @@ import gc
 
 from ..core.cache import SmartCache
 from ..core.events import get_event_bus, EventType
+from holdem_cli.utils.logging_utils import get_logger
 
 
 class PerformanceMetrics:
@@ -341,7 +342,7 @@ def start_performance_monitoring(interval: float = 5.0):
             # Log performance issues
             suggestions = optimizer.get_optimization_suggestions()
             if suggestions:
-                print(f"Performance suggestions: {suggestions}")
+                get_logger().info(f"Performance suggestions: {suggestions}")
 
             # Trigger garbage collection if memory is high
             if memory_usage > 200:  # 200MB threshold
@@ -564,53 +565,55 @@ def reset_memory_manager():
 
 def log_performance_metrics():
     """Log current performance metrics."""
+    logger = get_logger()
     optimizer = get_performance_optimizer()
     report = optimizer.get_performance_report()
 
-    print("=== Performance Report ===")
-    print(f"Optimization Enabled: {report['optimization_enabled']}")
-    print(".2f")
-    print(".1%")
-    print(f"Memory Trend: {report['metrics']['memory_trend']}")
-    print(f"Dirty Components: {report['dirty_components']}")
-    print(f"Cached Renders: {report['cached_renders']}")
-    print(f"Cached Data: {report['cached_data']}")
-    print(f"Lazy Components: {report['lazy_components']}")
+    logger.info("=== Performance Report ===")
+    logger.info(f"Optimization Enabled: {report['optimization_enabled']}")
+    logger.info(f"Avg Render Time: {report['metrics']['average_render_time_ms']:.2f}ms")
+    logger.info(f"Cache Hit Rate: {report['metrics']['cache_hit_rate']:.1%}")
+    logger.info(f"Memory Trend: {report['metrics']['memory_trend']}")
+    logger.info(f"Dirty Components: {report['dirty_components']}")
+    logger.info(f"Cached Renders: {report['cached_renders']}")
+    logger.info(f"Cached Data: {report['cached_data']}")
+    logger.info(f"Lazy Components: {report['lazy_components']}")
 
     if report['suggestions']:
-        print("\nOptimization Suggestions:")
+        logger.info("Optimization Suggestions:")
         for suggestion in report['suggestions']:
-            print(f"  • {suggestion}")
+            logger.info(f"  - {suggestion}")
 
-    print("=" * 25)
+    logger.info("=" * 25)
 
 
 def log_memory_metrics():
     """Log detailed memory usage metrics."""
+    logger = get_logger()
     try:
         memory_manager = get_memory_manager()
         memory_stats = memory_manager.get_memory_stats()
 
-        print("=== Memory Report ===")
-        print(".1f")
-        print(f"Chart Cache: {memory_stats['chart_cache_size']} items")
-        print(f"Matrix Cache: {memory_stats['matrix_cache_size']} items")
-        print(f"Weak References: {memory_stats['weak_refs_count']} refs")
-        print(".1f")
+        logger.info("=== Memory Report ===")
+        logger.info(f"Memory Usage: {memory_stats['memory_usage_mb']:.1f}MB")
+        logger.info(f"Chart Cache: {memory_stats['chart_cache_size']} items")
+        logger.info(f"Matrix Cache: {memory_stats['matrix_cache_size']} items")
+        logger.info(f"Weak References: {memory_stats['weak_refs_count']} refs")
+        logger.info(f"Threshold: {memory_stats['memory_threshold_mb']:.1f}MB")
 
         # Memory usage trend
         memory_mb = memory_stats['memory_usage_mb']
         if memory_mb > 500:
-            print("⚠️  HIGH MEMORY USAGE - Consider optimization")
+            logger.warning("HIGH MEMORY USAGE - Consider optimization")
         elif memory_mb > 200:
-            print("⚡ MODERATE MEMORY USAGE")
+            logger.info("MODERATE MEMORY USAGE")
         else:
-            print("✅ LOW MEMORY USAGE")
+            logger.info("LOW MEMORY USAGE")
 
-        print("=" * 25)
+        logger.info("=" * 25)
 
     except ImportError:
-        print("Memory manager not available - install requirements for detailed memory monitoring")
+        logger.warning("Memory manager not available - install requirements for detailed memory monitoring")
 
 
 def auto_memory_optimization():
@@ -626,14 +629,14 @@ def auto_memory_optimization():
 
         # If memory usage is high, trigger optimization
         if memory_stats['memory_usage_mb'] > memory_stats['memory_threshold_mb']:
-            print("🔧 Auto-optimizing memory usage...")
+            get_logger().info("Auto-optimizing memory usage...")
             memory_manager.optimize_memory_usage()
 
             # Also optimize performance caches
             optimizer = get_performance_optimizer()
             optimizer.optimize_memory()
 
-            print("✅ Memory optimization complete")
+            get_logger().info("Memory optimization complete")
 
     except ImportError:
         # Fallback: basic garbage collection
@@ -664,12 +667,12 @@ def safe_memory_operation(operation: Callable, operation_name: str = "operation"
         # Log significant memory changes
         memory_diff = final_memory.get('rss_mb', 0) - initial_memory.get('rss_mb', 0)
         if abs(memory_diff) > 10:  # More than 10MB change
-            print(".1f")
+            get_logger().info(f"Memory change during {operation_name}: {memory_diff:+.1f}MB")
 
         return result
 
     except Exception as e:
-        print(f"❌ Error in {operation_name}: {e}")
+        get_logger().error(f"Error in {operation_name}: {e}")
         # Attempt cleanup on error
         gc.collect()
         raise
@@ -688,7 +691,7 @@ def setup_memory_monitoring(app):
         try:
             auto_memory_optimization()
         except Exception as e:
-            print(f"Memory monitoring error: {e}")
+            get_logger().error(f"Memory monitoring error: {e}")
 
     # Setup periodic memory checks (every 5 minutes)
     import asyncio
@@ -704,7 +707,7 @@ async def _periodic_memory_check(interval: int = 300):
             auto_memory_optimization()
         except Exception as e:
             # Don't crash the app on memory monitoring errors
-            print(f"Memory monitoring error: {e}")
+            get_logger().error(f"Memory monitoring error: {e}")
 
 
 # Utility function for memory-aware chart operations
