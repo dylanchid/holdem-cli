@@ -210,7 +210,7 @@ class QuizScreen(Screen):
             # Update progress bar
             progress_bar = self.query_one("#progress_bar", ProgressBar)
             progress_bar.progress = self.total_questions
-        except:
+        except Exception:
             pass
 
     def _update_score(self):
@@ -220,7 +220,7 @@ class QuizScreen(Screen):
         try:
             score_widget = self.query_one("#quiz_score", Static)
             score_widget.update(score_text)
-        except:
+        except Exception:
             pass
 
     def _update_question(self):
@@ -235,7 +235,7 @@ class QuizScreen(Screen):
         try:
             question_widget = self.query_one("#question_text", Static)
             question_widget.update(question_text)
-        except:
+        except Exception:
             pass
 
     def _update_buttons(self):
@@ -255,7 +255,7 @@ class QuizScreen(Screen):
             self.query_one("#show_answer", Button).disabled = not has_question or not is_answering
             self.query_one("#end_quiz", Button).disabled = not has_question
 
-        except:
+        except Exception:
             pass
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -369,10 +369,10 @@ class QuizScreen(Screen):
                 try:
                     correct_button = self.query_one(f"#{correct_btn_id}", Button)
                     correct_button.add_class("correct")
-                except:
+                except Exception:
                     pass
 
-        except:
+        except Exception:
             pass
 
     def _clear_feedback(self):
@@ -387,9 +387,9 @@ class QuizScreen(Screen):
                     button = self.query_one(f"#{btn_id}", Button)
                     button.remove_class("correct")
                     button.remove_class("incorrect")
-                except:
+                except Exception:
                     pass
-        except:
+        except Exception:
             pass
 
     def _show_answer(self):

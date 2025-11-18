@@ -418,7 +418,7 @@ def retry_on_error(
 
                     get_logger().warning(
                         f"Operation {func.__name__} failed (attempt {attempt + 1}/{max_retries + 1}), "
-                        ".1f"
+                        f"retrying in {current_delay:.1f}s"
                     )
 
                     time.sleep(current_delay)

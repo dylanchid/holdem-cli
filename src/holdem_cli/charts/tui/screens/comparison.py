@@ -231,7 +231,7 @@ class ComparisonScreen(Screen):
             if current_right and current_right in [opt[1] for opt in options]:
                 right_select.value = current_right
 
-        except:
+        except Exception:
             pass
 
     def _setup_differences_table(self):
@@ -239,7 +239,7 @@ class ComparisonScreen(Screen):
         try:
             table = self.query_one("#differences_table", DataTable)
             table.add_columns("Hand", "Left Action", "Right Action", "Difference")
-        except:
+        except Exception:
             pass
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -274,7 +274,7 @@ class ComparisonScreen(Screen):
             try:
                 title_widget = self.query_one("#left_chart_title", Label)
                 title_widget.update(chart_name)
-            except:
+            except Exception:
                 pass
 
     def _update_right_chart(self):
@@ -287,7 +287,7 @@ class ComparisonScreen(Screen):
             try:
                 title_widget = self.query_one("#right_chart_title", Label)
                 title_widget.update(chart_name)
-            except:
+            except Exception:
                 pass
 
     def _perform_comparison(self):
@@ -345,7 +345,7 @@ Right Chart: {chart2['name']} ({chart2['total_hands']} hands)
 
             analysis_widget.update(analysis_text)
 
-        except:
+        except Exception:
             pass
 
     def _update_differences_table(self, comparison: Dict):
@@ -375,7 +375,7 @@ Right Chart: {chart2['name']} ({chart2['total_hands']} hands)
                 right_action = self._get_action_for_hand(self.right_chart_id, hand) if self.right_chart_id else None
                 table.add_row(hand, "Not Present", right_action or "No Action", "Only in Right")
 
-        except:
+        except Exception:
             pass
 
     def _get_action_for_hand(self, chart_id: str, hand: str) -> Optional[str]:
@@ -438,7 +438,7 @@ Right Chart: {chart2['name']} ({chart2['total_hands']} hands)
             if hasattr(self, '_right_matrix'):
                 self._right_matrix.update_actions({})
 
-        except:
+        except Exception:
             pass
 
         self.notify("🔄 Comparison reset", severity="information")

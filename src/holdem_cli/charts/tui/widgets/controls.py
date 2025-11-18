@@ -189,7 +189,7 @@ class ChartControlsWidget(Container):
                 control = self.query_one(control_id, Button)
                 control.disabled = False
                 control.add_class("enabled")
-            except:
+            except Exception:
                 pass  # Control might not exist yet
     
     def _disable_range_builder_controls(self) -> None:
@@ -200,7 +200,7 @@ class ChartControlsWidget(Container):
                 control = self.query_one(control_id, Button)
                 control.disabled = True
                 control.remove_class("enabled")
-            except:
+            except Exception:
                 pass  # Control might not exist yet
     
     def _update_view_mode_indicator(self) -> None:
@@ -222,7 +222,7 @@ class ChartControlsWidget(Container):
         try:
             select = self.query_one("#view_mode_select", Select)
             select.value = view_mode
-        except:
+        except Exception:
             pass
         
         try:
@@ -235,7 +235,7 @@ class ChartControlsWidget(Container):
                 toggle_button.label = "Toggle Builder"
                 toggle_button.variant = "secondary"
                 self._disable_range_builder_controls()
-        except:
+        except Exception:
             pass
     
     def get_status_summary(self) -> str:

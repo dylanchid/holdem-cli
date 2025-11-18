@@ -602,9 +602,10 @@ class PokerSimulator:
                     f.write("Action Summary:\n")
                     actions_by_player = {"Human": [], "AI": []}
                     for action in hand.action_history:
-                        actions_by_player[action['player']].append(f"{action['action']}")
                         if action['amount'] > 0:
-                            actions_by_player[action['player'][-1]] = actions_by_player[action['player'][:-1]] + [f"{action['action']} ${action['amount']}"]
+                            actions_by_player[action['player']].append(f"{action['action']} ${action['amount']}")
+                        else:
+                            actions_by_player[action['player']].append(f"{action['action']}")
 
                     for player, actions in actions_by_player.items():
                         if actions:
