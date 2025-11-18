@@ -17,7 +17,7 @@ from enum import Enum, auto
 
 from holdem_cli.types import HandAction, ChartAction
 from holdem_cli.charts.tui.core.events import get_event_bus, EventType, create_quiz_answer_event
-# from holdem_cli.charts.tui.core.cache import SmartCache
+from holdem_cli.charts.tui.core.cache import SmartCache
 
 
 class QuizMode(Enum):
