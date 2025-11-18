@@ -9,6 +9,8 @@ from typing import Dict, Any, Optional, Callable
 from datetime import datetime
 import json
 
+from holdem_cli.utils.error_handling import log_error_and_continue
+
 
 class AppState:
     """Global application state manager."""
@@ -100,7 +102,7 @@ class AppState:
                 try:
                     callback(key, old_value, new_value)
                 except Exception as e:
-                    print(f"Error in state listener callback: {e}")
+                    log_error_and_continue(e, operation=f"state_listener_{key}")
 
     def undo(self) -> bool:
         """Undo the last state change."""
@@ -170,7 +172,7 @@ class AppState:
 
             return True
         except Exception as e:
-            print(f"Error saving state: {e}")
+            log_error_and_continue(e, operation="save_state")
             return False
 
     def load_state(self, filename: str) -> bool:
@@ -186,7 +188,7 @@ class AppState:
 
             return True
         except Exception as e:
-            print(f"Error loading state: {e}")
+            log_error_and_continue(e, operation="load_state")
             return False
 
     def get_statistics(self) -> Dict[str, Any]:

@@ -19,6 +19,7 @@ from .quiz import ChartQuizApp
 from .constants import DEFAULT_CHART_NAME
 from .tui.widgets.matrix import create_sample_range
 from holdem_cli.types import HandAction
+from holdem_cli.utils.error_handling import log_error_and_continue
 
 # Re-export from loaders module
 from .loaders import (
@@ -96,6 +97,7 @@ def demo_tui() -> None:
     except KeyboardInterrupt:
         print("\nTUI interrupted by user")
     except Exception as e:
+        log_error_and_continue(e, operation="demo_tui")
         print(f"TUI error: {e}")
     finally:
         print("TUI demo completed")

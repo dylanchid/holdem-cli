@@ -26,6 +26,7 @@ from ..quiz.pot_odds import PotOddsQuiz
 from ..simulator.poker_simulator import PokerSimulator
 from holdem_cli.types import HandAction, ChartAction
 from holdem_cli.charts.tui.widgets.matrix import HandMatrix, create_sample_range
+from holdem_cli.utils.error_handling import log_error_and_continue
 from ..charts.chart_cli import ChartManager
 
 
@@ -75,7 +76,7 @@ class HoldemService:
             users = self.db.list_users()
             return users
         except Exception as e:
-            print(f"Error listing profiles: {e}")
+            log_error_and_continue(e, operation="list_profiles")
             return []
 
     def get_profile_stats(self, profile_name: str) -> Optional[Dict[str, Any]]:
@@ -88,7 +89,7 @@ class HoldemService:
             stats = self.db.get_user_quiz_stats(user['id'])
             return stats
         except Exception as e:
-            print(f"Error getting profile stats: {e}")
+            log_error_and_continue(e, operation="get_profile_stats")
             return None
 
     # ============================================================================
@@ -332,7 +333,7 @@ class HoldemService:
             charts = manager.list_charts()
             return charts
         except Exception as e:
-            print(f"Error listing charts: {e}")
+            log_error_and_continue(e, operation="list_charts")
             return []
 
     def get_chart(self, chart_name: str) -> Optional[Dict[str, Any]]:
@@ -355,7 +356,7 @@ class HoldemService:
                 }
             return None
         except Exception as e:
-            print(f"Error loading chart: {e}")
+            log_error_and_continue(e, operation="get_chart")
             return None
 
     def save_chart(self, name: str, spot: str, actions: Dict[str, HandAction],

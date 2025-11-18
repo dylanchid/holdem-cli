@@ -7,7 +7,7 @@ error recovery mechanisms, and logging integration.
 
 import traceback
 import functools
-from typing import Callable, Any, Optional, Dict, List, Type, Union
+from typing import Callable, Any, Optional, Dict, List, Type, Union, Tuple
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from enum import Enum

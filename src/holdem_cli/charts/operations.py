@@ -9,6 +9,8 @@ from datetime import datetime
 from typing import Dict, List, Any, Optional
 
 from holdem_cli.types import HandAction, ChartAction
+from holdem_cli.utils.logging_utils import get_logger
+from holdem_cli.utils.error_handling import DatabaseError, log_error_and_continue
 
 
 def merge_charts(
@@ -271,7 +273,7 @@ def save_chart_to_db(
         # In a real implementation, this would save to the database
         return True
     except Exception as e:
-        print(f"Error saving chart to database: {e}")
+        log_error_and_continue(e, operation="save_chart_to_db")
         return False
 
 
@@ -293,5 +295,5 @@ def load_chart_from_db(name: str) -> Optional[Dict[str, HandAction]]:
         # In a real implementation, this would load from the database
         return None
     except Exception as e:
-        print(f"Error loading chart from database: {e}")
+        log_error_and_continue(e, operation="load_chart_from_db")
         return None
