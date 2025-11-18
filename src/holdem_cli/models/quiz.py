@@ -42,7 +42,7 @@ class QuestionType(Enum):
 @dataclass
 class QuizQuestion(BaseModel, Identifiable):
     """Standardized quiz question model."""
-    question_text: str
+    question_text: str = ""
     question_type: QuestionType = QuestionType.MULTIPLE_CHOICE
     quiz_type: QuizType = QuizType.HAND_RANKING
     difficulty: Difficulty = Difficulty.MEDIUM
@@ -135,11 +135,11 @@ class QuizAnswer(BaseModel):
 @dataclass
 class QuizResult(BaseModel, TimestampMixin):
     """Model for quiz results and analytics."""
-    quiz_type: QuizType
-    total_questions: int
-    correct_answers: int
-    total_time_seconds: float
-    difficulty: Difficulty
+    quiz_type: QuizType = QuizType.HAND_RANKING
+    total_questions: int = 0
+    correct_answers: int = 0
+    total_time_seconds: float = 0.0
+    difficulty: Difficulty = Difficulty.MEDIUM
 
     # Question and answer tracking
     questions: List[QuizQuestion] = field(default_factory=list)
@@ -220,9 +220,9 @@ class QuizResult(BaseModel, TimestampMixin):
 @dataclass
 class QuizSession(BaseModel, TimestampMixin, Identifiable):
     """Model for quiz session tracking."""
-    user_id: int
-    quiz_type: QuizType
-    difficulty: Difficulty
+    user_id: int = 0
+    quiz_type: QuizType = QuizType.HAND_RANKING
+    difficulty: Difficulty = Difficulty.MEDIUM
     start_time: datetime = field(default_factory=datetime.now)
     end_time: Optional[datetime] = None
     duration_seconds: float = 0.0
@@ -284,7 +284,7 @@ class QuizSession(BaseModel, TimestampMixin, Identifiable):
 @dataclass
 class LearningProgress(BaseModel, TimestampMixin, Identifiable):
     """Model for tracking user learning progress over time."""
-    user_id: int
+    user_id: int = 0
 
     # Overall progress
     total_quizzes_completed: int = 0
